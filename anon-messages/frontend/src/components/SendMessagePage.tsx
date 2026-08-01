@@ -86,7 +86,7 @@ export default function SendMessagePage({ username }: { username: string }) {
         {sent ? (
           <div className="py-8 flex flex-col items-center gap-3 animate-pop">
             <CheckCircle2 size={32} className="text-white/70" />
-            <p className="text-sm text-white/80">Sent — completely anonymously.</p>
+            <p className="text-sm text-white/80">Sent. Hindi ka makikilala nyan bui.</p>
             <button
               onClick={() => {
                 setBody('');
