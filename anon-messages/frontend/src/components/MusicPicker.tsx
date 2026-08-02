@@ -109,7 +109,8 @@ export default function MusicPicker({ onSelect, onClose }: Props) {
                 </div>
                 <button
                   onClick={() => onSelect(track)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white text-white hover:text-ink transition flex-shrink-0"
+                  disabled={!track.previewUrl}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white text-white hover:text-ink transition flex-shrink-0 disabled:opacity-30 disabled:hover:bg-white/10 disabled:hover:text-white"
                   aria-label="Select this song"
                 >
                   <Check size={14} />
