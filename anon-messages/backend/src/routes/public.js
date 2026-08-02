@@ -23,6 +23,7 @@ const musicSchema = z
     artist: z.string().min(1).max(200),
     previewUrl: z.string().url(),
     albumArt: z.string().url().nullable().optional(),
+    startTime: z.number().min(0).max(30).optional().default(0),
   })
   .optional();
 
@@ -60,6 +61,7 @@ router.post('/:username/send', sendLimiter, async (req, res) => {
     music_artist: music?.artist || null,
     music_preview_url: music?.previewUrl || null,
     music_album_art: music?.albumArt || null,
+    music_start_time: music?.startTime ?? 0,
   });
 
   if (error) return res.status(500).json({ error: 'Could not send message', code: 'ERR_SEND_FAILED' });
