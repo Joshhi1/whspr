@@ -11,6 +11,7 @@ const authRoutes = require('./src/routes/auth');
 const profileRoutes = require('./src/routes/profile');
 const messagesRoutes = require('./src/routes/messages');
 const publicRoutes = require('./src/routes/public');
+const musicRoutes = require('./src/routes/music');
 
 const app = express();
 
@@ -25,8 +26,9 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        imgSrc: ["'self'", 'data:', 'https://*.supabase.co', 'https://api.dicebear.com'],
+        imgSrc: ["'self'", 'data:', 'https://*.supabase.co', 'https://api.dicebear.com', 'https://*.dzcdn.net'],
         connectSrc: ["'self'", 'https://*.supabase.co', 'wss://*.supabase.co'],
+        mediaSrc: ["'self'", 'https://*.dzcdn.net'],
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
@@ -56,6 +58,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/profile', apiLimiter, profileRoutes);
 app.use('/api/messages', apiLimiter, messagesRoutes);
+app.use('/api/public/music', apiLimiter, musicRoutes);
 app.use('/api/public', apiLimiter, publicRoutes);
 
 // --- 404 & error handling -----------------------------------------------------
