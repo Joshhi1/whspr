@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Send, CheckCircle2, Music2, X } from 'lucide-react';
+import { Send, CheckCircle2, Music2, X, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api, ApiError } from '../lib/api';
 import MusicPicker, { Track } from './MusicPicker';
+import MusicTrimmer from './MusicTrimmer';
 
 interface PublicProfile {
   id: string;
@@ -11,14 +12,25 @@ interface PublicProfile {
   avatar_url: string | null;
 }
 
+interface SelectedTrack extends Track {
+  startTime: number;
+}
+
 const MAX_LENGTH = 500;
+
+function formatTime(seconds: number) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
 
 export default function SendMessagePage({ username }: { username: string }) {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
   const [body, setBody] = useState('');
-  const [track, setTrack] = useState<Track | null>(null);
+  const [track, setTrack] = useState<SelectedTrack | null>(null);
+  const [pendingTrack, setPendingTrack] = useState<Track | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -46,7 +58,13 @@ export default function SendMessagePage({ username }: { username: string }) {
         body: JSON.stringify({
           body: body.trim(),
           music: track
-            ? { title: track.title, artist: track.artist, previewUrl: track.previewUrl, albumArt: track.albumArt }
+            ? {
+                title: track.title,
+                artist: track.artist,
+                previewUrl: track.previewUrl,
+                albumArt: track.albumArt,
+                startTime: track.startTime,
+              }
             : undefined,
         }),
       });
@@ -127,8 +145,17 @@ export default function SendMessagePage({ username }: { username: string }) {
                 {track.albumArt && <img src={track.albumArt} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" alt="" />}
                 <div className="flex-1 min-w-0 text-left">
                   <p className="text-sm font-medium truncate">{track.title}</p>
-                  <p className="text-xs text-white/40 truncate">{track.artist}</p>
+                  <p className="text-xs text-white/40 truncate">
+                    from {formatTime(track.startTime)}
+                  </p>
                 </div>
+                <button
+                  onClick={() => setPendingTrack(track)}
+                  className="text-white/30 hover:text-white transition flex-shrink-0"
+                  aria-label="Change which part plays"
+                >
+                  <Pencil size={14} />
+                </button>
                 <button
                   onClick={() => setTrack(null)}
                   className="text-white/30 hover:text-white transition flex-shrink-0"
@@ -166,8 +193,23 @@ export default function SendMessagePage({ username }: { username: string }) {
         <MusicPicker
           onClose={() => setShowPicker(false)}
           onSelect={(t) => {
-            setTrack(t);
+            setPendingTrack(t);
             setShowPicker(false);
+          }}
+        />
+      )}
+
+      {pendingTrack && (
+        <MusicTrimmer
+          track={pendingTrack}
+          initialStart={track && track.id === pendingTrack.id ? track.startTime : 0}
+          onBack={() => {
+            setPendingTrack(null);
+            setShowPicker(true);
+          }}
+          onConfirm={(startTime) => {
+            setTrack({ ...pendingTrack, startTime });
+            setPendingTrack(null);
           }}
         />
       )}
