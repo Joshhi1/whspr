@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/', requireAuth, async (req, res) => {
   const { data, error } = await req.supabase
     .from('messages')
-    .select('id, body, is_read, created_at')
+    .select('id, body, music_title, music_artist, music_preview_url, music_album_art, is_read, created_at')
     .eq('recipient_id', req.user.id)
     .order('created_at', { ascending: false });
 
