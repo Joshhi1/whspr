@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Copy, Share2, Trash2, MessageCircleOff, RefreshCw } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Copy, Share2, Trash2, MessageCircleOff, RefreshCw, Play, Pause } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabase';
@@ -8,6 +8,10 @@ import { useAuth } from '../context/AuthContext';
 interface Message {
   id: string;
   body: string;
+  music_title: string | null;
+  music_artist: string | null;
+  music_preview_url: string | null;
+  music_album_art: string | null;
   is_read: boolean;
   created_at: string;
 }
@@ -26,6 +30,23 @@ export default function Dashboard() {
   const { profile } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const togglePreview = (msg: Message) => {
+    if (!msg.music_preview_url) return;
+    if (playingId === msg.id) {
+      audioRef.current?.pause();
+      setPlayingId(null);
+      return;
+    }
+    audioRef.current?.pause();
+    const audio = new Audio(msg.music_preview_url);
+    audio.play();
+    audio.onended = () => setPlayingId(null);
+    audioRef.current = audio;
+    setPlayingId(msg.id);
+  };
 
   const link = profile ? `${window.location.origin}/u/${profile.username}` : '';
 
@@ -43,6 +64,12 @@ export default function Dashboard() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
+    };
   }, []);
 
   useEffect(() => {
@@ -156,6 +183,26 @@ export default function Dashboard() {
                   <Trash2 size={15} />
                 </button>
               </div>
+              {msg.music_title && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePreview(msg);
+                  }}
+                  className="w-full flex items-center gap-2.5 rounded-lg bg-white/5 hover:bg-white/10 p-2 mt-2 transition text-left"
+                >
+                  {msg.music_album_art && (
+                    <img src={msg.music_album_art} className="w-9 h-9 rounded-md object-cover flex-shrink-0" alt="" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{msg.music_title}</p>
+                    <p className="text-[11px] text-white/40 truncate">{msg.music_artist}</p>
+                  </div>
+                  <span className="text-white/60 flex-shrink-0">
+                    {playingId === msg.id ? <Pause size={14} /> : <Play size={14} />}
+                  </span>
+                </button>
+              )}
               <div className="flex items-center gap-2 mt-2">
                 <p className="text-xs text-white/40">{timeAgo(msg.created_at)}</p>
                 {!msg.is_read && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
