@@ -89,9 +89,9 @@ export default function SendMessagePage({ username }: { username: string }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-ink px-6 text-center">
         <div>
-          <p className="text-white/70 text-sm mb-2">This link doesn't exist.</p>
+          <p className="text-white/70 text-sm mb-2">Walang link na ganito utoy.</p>
           <a href="/" className="text-white/40 text-xs underline hover:text-white/70">
-            Get your own anonymous message link
+            Gumawa kana rin ng acc baka may mag confess sayo.
           </a>
         </div>
       </div>
@@ -112,7 +112,7 @@ export default function SendMessagePage({ username }: { username: string }) {
         {sent ? (
           <div className="py-8 flex flex-col items-center gap-3 animate-pop">
             <CheckCircle2 size={32} className="text-white/70" />
-            <p className="text-sm text-white/80">Sent — completely anonymously.</p>
+            <p className="text-sm text-white/80">Sent! Wag kana umasa may iba na sya.f </p>
             <button
               onClick={() => {
                 setBody('');
@@ -129,12 +129,12 @@ export default function SendMessagePage({ username }: { username: string }) {
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value.slice(0, MAX_LENGTH))}
-              placeholder="Say something… or just send a song"
+              placeholder="Torpe yarne"
               rows={4}
               className="w-full bg-white/5 rounded-xl p-3.5 text-sm outline-none resize-none border border-line focus:border-white/30 transition-colors placeholder:text-white/30"
             />
             <div className="flex items-center justify-between mt-2 mb-4">
-              <p className="text-xs text-white/30">No name, no account — fully anonymous</p>
+              <p className="text-xs text-white/30">Gamitin mo to kung torpe ka.</p>
               <p className="text-xs text-white/30">
                 {body.length}/{MAX_LENGTH}
               </p>
@@ -169,7 +169,7 @@ export default function SendMessagePage({ username }: { username: string }) {
                 onClick={() => setShowPicker(true)}
                 className="w-full flex items-center justify-center gap-2 rounded-xl bg-white/5 border border-line hover:bg-white/10 py-2.5 text-sm text-white/70 transition mb-4"
               >
-                <Music2 size={15} /> Add a song
+                <Music2 size={15} /> Add a song. Wag puro parinig sa notes
               </button>
             )}
 
