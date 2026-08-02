@@ -12,6 +12,7 @@ interface Message {
   music_artist: string | null;
   music_preview_url: string | null;
   music_album_art: string | null;
+  music_start_time: number;
   is_read: boolean;
   created_at: string;
 }
@@ -42,7 +43,10 @@ export default function Dashboard() {
     }
     audioRef.current?.pause();
     const audio = new Audio(msg.music_preview_url);
-    audio.play();
+    audio.addEventListener('loadedmetadata', () => {
+      audio.currentTime = msg.music_start_time || 0;
+      audio.play();
+    });
     audio.onended = () => setPlayingId(null);
     audioRef.current = audio;
     setPlayingId(msg.id);
