@@ -24,18 +24,25 @@ export default function MusicTrimmer({ track, initialStart = 0, onConfirm, onBac
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const startRef = useRef(start);
+  useEffect(() => {
+    startRef.current = start;
+  }, [start]);
+
   useEffect(() => {
     const audio = new Audio(track.previewUrl!);
     audioRef.current = audio;
 
-    audio.addEventListener('loadedmetadata', () => {
+    const updateDuration = () => {
       if (isFinite(audio.duration) && audio.duration > 0) {
         setDuration(Math.min(audio.duration, FALLBACK_DURATION));
       }
-    });
+    };
+    audio.addEventListener('loadedmetadata', updateDuration);
+    audio.addEventListener('durationchange', updateDuration);
 
     const handleTimeUpdate = () => {
-      if (audio.currentTime >= start + CLIP_LENGTH) {
+      if (audio.currentTime >= startRef.current + CLIP_LENGTH) {
         audio.pause();
         setPlaying(false);
       }
@@ -44,6 +51,8 @@ export default function MusicTrimmer({ track, initialStart = 0, onConfirm, onBac
 
     return () => {
       audio.pause();
+      audio.removeEventListener('loadedmetadata', updateDuration);
+      audio.removeEventListener('durationchange', updateDuration);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -64,10 +73,18 @@ export default function MusicTrimmer({ track, initialStart = 0, onConfirm, onBac
     }
   };
 
+  const handleDragStart = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.currentTime = start;
+    audio.play();
+    setPlaying(true);
+  };
+
   const handleDrag = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.min(Number(e.target.value), maxStart);
     setStart(value);
-    if (audioRef.current && playing) {
+    if (audioRef.current) {
       audioRef.current.currentTime = value;
     }
   };
@@ -93,7 +110,6 @@ export default function MusicTrimmer({ track, initialStart = 0, onConfirm, onBac
           </div>
         </div>
 
-        {/* Timeline visual: full preview bar with the selected 10s window highlighted */}
         <div className="relative h-2.5 rounded-full bg-white/10 mb-2 overflow-hidden">
           <div
             className="absolute top-0 bottom-0 bg-white rounded-full transition-all"
@@ -108,6 +124,8 @@ export default function MusicTrimmer({ track, initialStart = 0, onConfirm, onBac
           step={0.5}
           value={start}
           onChange={handleDrag}
+          onPointerDown={handleDragStart}
+          onTouchStart={handleDragStart}
           className="w-full accent-white mb-1"
           aria-label="Drag to choose which part of the song to send"
         />
