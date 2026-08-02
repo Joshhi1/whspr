@@ -29,6 +29,13 @@ export default function MusicTrimmer({ track, initialStart = 0, onConfirm, onBac
     startRef.current = start;
   }, [start]);
 
+  // While actively dragging, currentTime can briefly report a stale value
+  // right after a seek (the browser hasn't caught up yet on a network-
+  // streamed file). Without this guard, that lag could make the boundary
+  // check below think playback reached the end of the clip and cut it off
+  // mid-drag, before the person even finished choosing a spot.
+  const isDraggingRef = useRef(false);
+
   useEffect(() => {
     const audio = new Audio(track.previewUrl!);
     audioRef.current = audio;
@@ -42,6 +49,7 @@ export default function MusicTrimmer({ track, initialStart = 0, onConfirm, onBac
     audio.addEventListener('durationchange', updateDuration);
 
     const handleTimeUpdate = () => {
+      if (isDraggingRef.current) return;
       if (audio.currentTime >= startRef.current + CLIP_LENGTH) {
         audio.pause();
         setPlaying(false);
@@ -74,12 +82,25 @@ export default function MusicTrimmer({ track, initialStart = 0, onConfirm, onBac
   };
 
   const handleDragStart = () => {
+    isDraggingRef.current = true;
     const audio = audioRef.current;
     if (!audio) return;
     audio.currentTime = start;
     audio.play();
     setPlaying(true);
   };
+
+  useEffect(() => {
+    const clearDragging = () => {
+      isDraggingRef.current = false;
+    };
+    window.addEventListener('pointerup', clearDragging);
+    window.addEventListener('touchend', clearDragging);
+    return () => {
+      window.removeEventListener('pointerup', clearDragging);
+      window.removeEventListener('touchend', clearDragging);
+    };
+  }, []);
 
   const handleDrag = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.min(Number(e.target.value), maxStart);
@@ -125,7 +146,6 @@ export default function MusicTrimmer({ track, initialStart = 0, onConfirm, onBac
           value={start}
           onChange={handleDrag}
           onPointerDown={handleDragStart}
-          onTouchStart={handleDragStart}
           className="w-full accent-white mb-1"
           aria-label="Drag to choose which part of the song to send"
         />
